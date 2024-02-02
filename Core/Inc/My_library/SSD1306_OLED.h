@@ -58,7 +58,10 @@
 #define SSD1306_LCDWIDTH 128 ///< DEPRECATED: width w/SSD1306_128_64 defined
 #define SSD1306_LCDHEIGHT 64 ///< DEPRECATED: height w/SSD1306_128_64 defined
 
+#define SSD1306_BUFFER_SIZE (SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8)
 
 void SSD1306_Init(I2C_HandleTypeDef *i2c);
+void SSD1306_Display(void);
+void SSD1306_Clear(uint8_t color);
 
 #endif /* INC_MY_LIBRARY_SSD1306_OLED_H_ */

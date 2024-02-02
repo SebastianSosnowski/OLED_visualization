@@ -24,6 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include "My_library/SSD1306_OLED.h"
 /* USER CODE END Includes */
 
@@ -91,6 +92,11 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   SSD1306_Init(&hi2c1);
+
+  SSD1306_Clear(SSD1306_WHITE);
+
+  SSD1306_Display();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
