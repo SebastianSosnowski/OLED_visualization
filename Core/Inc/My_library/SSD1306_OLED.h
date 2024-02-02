@@ -8,7 +8,7 @@
 #ifndef INC_MY_LIBRARY_SSD1306_OLED_H_
 #define INC_MY_LIBRARY_SSD1306_OLED_H_
 
-#define SSD1303_ADDRESS 0x3C
+#define SSD1303_ADDRESS (0x3C)
 
 #define SSD1306_TIMEOUT 1000
 
@@ -63,5 +63,6 @@
 void SSD1306_Init(I2C_HandleTypeDef *i2c);
 void SSD1306_Display(void);
 void SSD1306_Clear(uint8_t color);
+void SSD1306_DrawPixel(int16_t x, int16_t y, uint8_t color);
 
 #endif /* INC_MY_LIBRARY_SSD1306_OLED_H_ */

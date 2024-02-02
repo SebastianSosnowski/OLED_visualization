@@ -93,7 +93,13 @@ int main(void)
   /* USER CODE BEGIN 2 */
   SSD1306_Init(&hi2c1);
 
-  SSD1306_Clear(SSD1306_WHITE);
+  SSD1306_Clear(SSD1306_BLACK);
+
+  for(uint8_t i = 0; i < 30; i++)
+  {
+	  SSD1306_DrawPixel(10 + i, 10, SSD1306_WHITE);
+  }
+  //SSD1306_DrawPixel(10, 10, SSD1306_WHITE);
 
   SSD1306_Display();
 

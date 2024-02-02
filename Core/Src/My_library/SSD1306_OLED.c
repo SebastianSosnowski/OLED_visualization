@@ -31,7 +31,27 @@ void SSD1306_Command(uint8_t command)
   */
 void SSD1306_Data(uint8_t *data, uint16_t size)
 {
-	HAL_I2C_Mem_Write(oled_i2c, SSD1303_ADDRESS << 1, 0x040, 1, data, size, SSD1306_TIMEOUT);
+	HAL_I2C_Mem_Write(oled_i2c, (SSD1303_ADDRESS << 1), 0x040, 1, data, size, SSD1306_TIMEOUT);
+}
+
+void SSD1306_DrawPixel(int16_t x, int16_t y, uint8_t color) {
+
+	// Pixel is out of bounds
+	if ((x < 0) || (x >= SSD1306_LCDWIDTH) || (y < 0) || (y >= SSD1306_LCDHEIGHT)) return;
+
+  	// Pixel is in-bounds
+    switch (color)
+    {
+    case SSD1306_WHITE:
+      buffer[x + (y / 8) * SSD1306_LCDWIDTH] |= (1 << (y & 7));
+      break;
+    case SSD1306_BLACK:
+      buffer[x + (y / 8) * SSD1306_LCDWIDTH] &= ~(1 << (y & 7));
+      break;
+    case SSD1306_INVERSE:
+      buffer[x + (y / 8) * SSD1306_LCDWIDTH] ^= (1 << (y & 7));
+      break;
+    }
 }
 
 void SSD1306_Clear(uint8_t color)
