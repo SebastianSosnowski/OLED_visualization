@@ -18,8 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dma.h"
 #include "i2c.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -32,7 +34,9 @@
 #include "My_library/logo.h"
 #include"My_library/BMP280.h"
 
-#include "stdio.h"
+#include <stdio.h>
+#include <math.h>
+#include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,7 +46,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define FFT_SAMPLES 1024
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -63,13 +67,26 @@ float Pressure, Temperature;
 char Message[32];
 uint32_t OledTim;
 //OLED
+
+// Microphone
+uint16_t AdcMicrophone[FFT_SAMPLES];
+
+float FFT_InBuffer[FFT_SAMPLES];
+float FFT_OutBuffer[FFT_SAMPLES];
+
+arm_rfft_fast_instance_f32 FFTHandler;
+
+volatile uint8_t SamplesReady; //rdy to cacl FFT
+
+uint8_t OutFreqArray[10];
+// Microphone
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
-
+void CalculateFFT(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -108,6 +125,8 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_I2C1_Init();
+  MX_ADC1_Init();
+  MX_TIM2_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -121,6 +140,10 @@ int main(void)
   SSD1306_Clear(BLACK);
 
   SSD1306_Display();
+
+  HAL_TIM_Base_Start(&htim2);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)AdcMicrophone, FFT_SAMPLES);
+  arm_rfft_fast_init_f32(&FFTHandler, FFT_SAMPLES);
 
   MeasureTim = HAL_GetTick();
   OledTim = HAL_GetTick();
@@ -139,16 +162,39 @@ int main(void)
 			  BMP280_ReadPressureTemp(&Pressure, &Temperature);
 		  }
 	  }
+	  //Micrphone
+	  if(SamplesReady == 1)
+	  {
+		  SamplesReady = 0;
+
+		  //put samples into input buffer
+		  for(uint32_t i = 0; i < FFT_SAMPLES; i++)
+		  {
+			  FFT_InBuffer[i] = (float)AdcMicrophone[i];
+		  }
+
+		  CalculateFFT();
+	  }
+
 	  //OLED
 	  if( (HAL_GetTick() - OledTim) > 100)
 	  {
 		  OledTim = HAL_GetTick();
 
+		  SSD1306_Clear(BLACK);
+
+		  //BMP data
 		  sprintf(Message, "Press: %.2f hPa", Pressure);
 		  GFX_DrawString(0, 0, Message, WHITE, 0);
 
 		  sprintf(Message, "Temp: %.2f C", Temperature);
 		  GFX_DrawString(0, 10, Message, WHITE, 0);
+
+		  //FFT microphone
+		  for(uint8_t i = 0; i < 10; i++)
+		  {
+			  GFX_DrawFillRectangle(10 + (i * 11), 64 - OutFreqArray[i], 10, OutFreqArray[i], WHITE);
+		  }
 
 		  SSD1306_Display();
 
@@ -219,10 +265,60 @@ static void MX_NVIC_Init(void)
   /* DMA1_Stream1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+  /* ADC_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(ADC_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(ADC_IRQn);
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 }
 
 /* USER CODE BEGIN 4 */
 
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+	if(hadc->Instance == ADC1)
+	{
+		SamplesReady = 1;
+	}
+}
+
+float complexABS(float real, float compl)
+{
+	return sqrt(real * real + compl * compl);
+}
+void CalculateFFT(void)
+{
+	arm_rfft_fast_f32(&FFTHandler, FFT_InBuffer, FFT_OutBuffer, 0);
+
+	int Freqs[FFT_SAMPLES];
+	int FreqPoint = 0;
+	int Offset = 45; //noise floor offset
+
+	//calc abs values and linear to dB
+	for(int i = 0; i < FFT_SAMPLES; i += 2)
+	{
+		Freqs[FreqPoint] = (int)(20 * log10f(complexABS(FFT_OutBuffer[i], FFT_OutBuffer[i + 1]))) - Offset; //conv to dB
+
+		if(Freqs[FreqPoint] < 0)
+		{
+			Freqs[FreqPoint] = 0;
+		}
+		FreqPoint++;
+	}
+
+	OutFreqArray[0] = (uint8_t)Freqs[1]; //22 Hz
+	OutFreqArray[1] = (uint8_t)Freqs[2]; //63 Hz
+	OutFreqArray[2] = (uint8_t)Freqs[3]; //125 Hz
+	OutFreqArray[3] = (uint8_t)Freqs[6]; //250 Hz
+	OutFreqArray[4] = (uint8_t)Freqs[12]; //500 Hz
+	OutFreqArray[5] = (uint8_t)Freqs[23]; //1000 Hz
+	OutFreqArray[6] = (uint8_t)Freqs[51]; //2200 Hz
+	OutFreqArray[7] = (uint8_t)Freqs[104]; //4500 Hz
+	OutFreqArray[8] = (uint8_t)Freqs[207]; //9000 Hz
+	OutFreqArray[9] = (uint8_t)Freqs[344]; //15000 Hz
+
+}
 /* USER CODE END 4 */
 
 /**
