@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 
 #include "My_library/SSD1306_OLED.h"
+#include "My_library/GFX_BW.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -93,13 +94,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   SSD1306_Init(&hi2c1);
 
-  SSD1306_Clear(SSD1306_BLACK);
+  SSD1306_Clear(BLACK);
 
-  for(uint8_t i = 0; i < 30; i++)
-  {
-	  SSD1306_DrawPixel(10 + i, 10, SSD1306_WHITE);
-  }
-  //SSD1306_DrawPixel(10, 10, SSD1306_WHITE);
+  GFX_DrawLine(10, 20, 39, 20, WHITE);
+
+  GFX_DrawLine(10, 30, 39, 50, WHITE);
 
   SSD1306_Display();
 

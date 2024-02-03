@@ -18,6 +18,10 @@
 #define SSD1306_WHITE 1   ///< Draw 'on' pixels
 #define SSD1306_INVERSE 2 ///< Invert pixels
 
+#define BLACK SSD1306_BLACK   ///< Draw 'off' pixels
+#define WHITE SSD1306_WHITE   ///< Draw 'on' pixels
+#define INVERSE SSD1306_INVERSE ///< Invert pixels
+
 #define SSD1306_MEMORYMODE 0x20          ///< See datasheet
 #define SSD1306_COLUMNADDR 0x21          ///< See datasheet
 #define SSD1306_PAGEADDR 0x22            ///< See datasheet
