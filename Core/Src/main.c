@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
@@ -53,17 +54,20 @@
 
 /* USER CODE BEGIN PV */
 //BMP280
+extern I2C_HandleTypeDef *BMP_I2C;
 uint32_t MeasureTim;
 float Pressure, Temperature;
 //BMP280
 
 //OLED
 char Message[32];
+uint32_t OledTim;
 //OLED
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -101,8 +105,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_I2C1_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   BMP280_Init(&hi2c1);
 
@@ -115,16 +123,26 @@ int main(void)
   SSD1306_Display();
 
   MeasureTim = HAL_GetTick();
+  OledTim = HAL_GetTick();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if( (HAL_GetTick() - MeasureTim) > 100)
+	  //BMP
+	  if( (HAL_GetTick() - MeasureTim) > 10)
 	  {
 		  MeasureTim = HAL_GetTick();
-		  BMP280_ReadPressureTemp(&Pressure, &Temperature);
+		  if(BMP_I2C->State == HAL_I2C_STATE_READY)
+		  {
+			  BMP280_ReadPressureTemp(&Pressure, &Temperature);
+		  }
+	  }
+	  //OLED
+	  if( (HAL_GetTick() - OledTim) > 100)
+	  {
+		  OledTim = HAL_GetTick();
 
 		  sprintf(Message, "Press: %.2f hPa", Pressure);
 		  GFX_DrawString(0, 0, Message, WHITE, 0);
@@ -187,6 +205,20 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* I2C1_EV_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(I2C1_EV_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
+  /* DMA1_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
 }
 
 /* USER CODE BEGIN 4 */
