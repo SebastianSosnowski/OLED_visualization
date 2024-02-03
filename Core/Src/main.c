@@ -28,6 +28,10 @@
 #include "My_library/SSD1306_OLED.h"
 #include "My_library/GFX_BW.h"
 #include "My_library/fonts/fonts.h"
+#include "My_library/logo.h"
+#include"My_library/BMP280.h"
+
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +52,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+//BMP280
+uint32_t MeasureTim;
+float Pressure, Temperature;
+//BMP280
 
+//OLED
+char Message[32];
+//OLED
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,22 +104,38 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+  BMP280_Init(&hi2c1);
+
   SSD1306_Init(&hi2c1);
+
+  GFX_SetFont(font_8x5);
 
   SSD1306_Clear(BLACK);
 
-  GFX_DrawLine(10, 20, 39, 20, WHITE);
-
-  GFX_DrawLine(10, 30, 39, 50, WHITE);
-
   SSD1306_Display();
 
+  MeasureTim = HAL_GetTick();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if( (HAL_GetTick() - MeasureTim) > 100)
+	  {
+		  MeasureTim = HAL_GetTick();
+		  BMP280_ReadPressureTemp(&Pressure, &Temperature);
+
+		  sprintf(Message, "Press: %.2f hPa", Pressure);
+		  GFX_DrawString(0, 0, Message, WHITE, 0);
+
+		  sprintf(Message, "Temp: %.2f C", Temperature);
+		  GFX_DrawString(0, 10, Message, WHITE, 0);
+
+		  SSD1306_Display();
+
+	  }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
