@@ -153,7 +153,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //BMP
+	  //BMP280
 	  if( (HAL_GetTick() - MeasureTim) > 10)
 	  {
 		  MeasureTim = HAL_GetTick();
@@ -162,7 +162,7 @@ int main(void)
 			  BMP280_ReadPressureTemp(&Pressure, &Temperature);
 		  }
 	  }
-	  //Micrphone
+	  //Microphone
 	  if(SamplesReady == 1)
 	  {
 		  SamplesReady = 0;
@@ -183,7 +183,7 @@ int main(void)
 
 		  SSD1306_Clear(BLACK);
 
-		  //BMP data
+		  //BMP280 data
 		  sprintf(Message, "Press: %.2f hPa", Pressure);
 		  GFX_DrawString(0, 0, Message, WHITE, 0);
 
@@ -197,7 +197,6 @@ int main(void)
 		  }
 
 		  SSD1306_Display();
-
 	  }
 
     /* USER CODE END WHILE */
@@ -283,10 +282,28 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 	}
 }
 
+/** complexABS
+ * @brief Calculate absolute values from complex nums.
+ * Used in CalculateFFT.
+ *
+ * @param real Real part.
+ * @param compl Imaginary part.
+ *
+ * @retval Absolute value.
+ * */
 float complexABS(float real, float compl)
 {
 	return sqrt(real * real + compl * compl);
 }
+
+/** CalculateFFT
+ * @brief Calculate FFT from data measured by microphone.
+ * Arm math instructions were used to speed up calculations.
+ *
+ * @param None.
+ *
+ * @retval None.
+ * */
 void CalculateFFT(void)
 {
 	arm_rfft_fast_f32(&FFTHandler, FFT_InBuffer, FFT_OutBuffer, 0);
