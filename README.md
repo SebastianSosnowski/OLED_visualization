@@ -8,7 +8,7 @@ Whole application was run on STM32F411RE Nucleo board. To calculate FFT much fas
 To draw shapes and texts on OLED, a GFX_BW library was added. Its a library based on adafruit library dedicated to these OLEDs.
 - SSD1306 OLED monochromatic screen to display BMP280 data as values and microphone FFT frequencies as columns chart.
 
-[![Video](https://www.youtube.com/watch?v=dy-sc953bA8)
+[![Video](https://img.youtube.com/vi/sc953bA8)](https://www.youtube.com/watch?v=dy-sc953bA8)
 
 <p align="center">
     <img src="./Images/Wired_devices.jpg" width =600>
