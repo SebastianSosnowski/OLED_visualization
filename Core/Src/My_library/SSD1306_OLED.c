@@ -15,9 +15,11 @@ I2C_HandleTypeDef  *oled_i2c;
 static uint8_t buffer[SSD1306_BUFFER_SIZE]; //OLED memory /8 cuz every pixel is 1 bit
 
 /** SSD1306_Command
-  * @brief  Issue single command to SSD1306
+  * @brief  Issue single command to SSD1306.
+  *
   * @param  command The command character to send to the display.
-  * @retval None
+  *
+  * @retval None.
   */
 void SSD1306_Command(uint8_t command)
 {
@@ -25,9 +27,11 @@ void SSD1306_Command(uint8_t command)
 }
 
 /** SSD1306_Data
-  * @brief  Issue single data to SSD1306
+  * @brief  Issue single data to SSD1306.
+  *
   * @param  data The data character to send to the display.
-  * @retval None
+  *
+  * @retval None.
   */
 void SSD1306_Data(uint8_t *data, uint16_t size)
 {
@@ -41,6 +45,15 @@ void SSD1306_Data(uint8_t *data, uint16_t size)
 #endif
 }
 
+/** SSD1306_DrawPixel
+  * @brief  Change color of single pixel in OLED buffer.
+  * Used in GFX_BW.h functions to draw shapes etc. and then send to OLED.
+  *
+  * @param  x, y Coordinates of the pixel to change.
+  * @param  color Color of the drawing pixel.
+  *
+  * @retval None.
+  */
 void SSD1306_DrawPixel(int16_t x, int16_t y, uint8_t color) {
 
 	// Pixel is out of bounds
@@ -61,6 +74,14 @@ void SSD1306_DrawPixel(int16_t x, int16_t y, uint8_t color) {
     }
 }
 
+/** SSD1306_Clear
+  * @brief  Clear OLED memory i.e. clear displayed content to set color.
+  * Used before refreshing displayed data etc..
+  *
+  * @param  color Color to which screen will be cleared.
+  *
+  * @retval None.
+  */
 void SSD1306_Clear(uint8_t color)
 {
 	switch(color)
@@ -74,6 +95,13 @@ void SSD1306_Clear(uint8_t color)
 	}
 }
 
+/** SSD1306_Display
+  * @brief  Display data stored in buffer on OLED screen.
+  *
+  * @param None.
+  *
+  * @retval None.
+  */
 void SSD1306_Display(void)
 {
 	SSD1306_Command(SSD1306_PAGEADDR);
@@ -86,6 +114,14 @@ void SSD1306_Display(void)
 	SSD1306_Data(buffer,SSD1306_BUFFER_SIZE);
 }
 
+/** SSD1306_Init
+  * @brief Initialize OLED configuration parameters.
+  *
+  * @param i2c Pointer to a I2C_HandleTypeDef structure that contains
+  * 	the configuration information for OLED.
+  *
+  * @retval None.
+  */
 void SSD1306_Init(I2C_HandleTypeDef *i2c)
 {
 	oled_i2c = i2c;
@@ -102,7 +138,7 @@ void SSD1306_Init(I2C_HandleTypeDef *i2c)
 	SSD1306_Command(SSD1306_SETSTARTLINE | 0x00);
 
 	SSD1306_Command(SSD1306_CHARGEPUMP);
-	SSD1306_Command(0x14); //internal vcc from pump
+	SSD1306_Command(0x14); 						//internal vcc from pump
 
 	SSD1306_Command(SSD1306_MEMORYMODE);
 	SSD1306_Command(0x00);
@@ -112,7 +148,7 @@ void SSD1306_Init(I2C_HandleTypeDef *i2c)
 	SSD1306_Command(SSD1306_SETCOMPINS);
 	SSD1306_Command(0x12);
 	SSD1306_Command(SSD1306_SETCONTRAST);
-	SSD1306_Command(0xFF);
+	SSD1306_Command(0xFF);						//Brightness
 
 	SSD1306_Command(SSD1306_SETPRECHARGE);
 	SSD1306_Command(0xF1);
@@ -122,6 +158,5 @@ void SSD1306_Init(I2C_HandleTypeDef *i2c)
 	SSD1306_Command(SSD1306_DISPLAYALLON_RESUME);
 	SSD1306_Command(SSD1306_NORMALDISPLAY);
 	SSD1306_Command(SSD1306_DEACTIVATE_SCROLL);
-	SSD1306_Command(SSD1306_DISPLAYON); // Main screen turn on
-
+	SSD1306_Command(SSD1306_DISPLAYON); 		// Main screen turn on
 }
