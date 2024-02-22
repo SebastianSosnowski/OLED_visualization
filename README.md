@@ -4,11 +4,13 @@
 The project goal was to create OLED screen library and display some data on it. Therefore OLED screen and 2 sensors were combined into application:
 - BMP280 sensor to measure temperature and pressure.
 - Microphone with sound sensor KY037 to measure sound and then calculate FFT to display certain frequencies.
-Whole application was run on STM32F411RE Nucleo board. To calculate FFT much faster, arm math function was added to project.
-To draw shapes and texts on OLED, a GFX_BW library was added. Its a library based on adafruit library dedicated to these OLEDs.
 - SSD1306 OLED monochromatic screen to display BMP280 data as values and microphone FFT frequencies as columns chart.
 
-[![Video](https://img.youtube.com/vi/sc953bA8)](https://www.youtube.com/watch?v=dy-sc953bA8)
+Whole application was run on STM32F411RE Nucleo board. To calculate FFT much faster, arm math function was added to project. To draw shapes and texts on OLED, a GFX_BW library was added. Its a library based on adafruit library dedicated to these OLEDs.
+
+If you are interested in RTOS, I also adapted this project to work with FreeRTOS, which you can find in [this](https://github.com/Mefiu1000/OLED-Visualization-RTOS) repo.
+
+[![Operation video](https://img.youtube.com/vi/sc953bA8)](https://www.youtube.com/watch?v=dy-sc953bA8)
 
 <p align="center">
     <img src="./Images/Wired_devices.jpg" width =600>
@@ -22,7 +24,7 @@ To draw shapes and texts on OLED, a GFX_BW library was added. Its a library base
 ##### Whole program was written with a use of HAL library. Each functionality is in seperate files in My_library folder:
 - BMP280.c/h
 - GFX_BW.c/h 
-- logo.c/h 
+- logo.h 
 - SSD1306_OLED.c/h 
 - fonts
 
